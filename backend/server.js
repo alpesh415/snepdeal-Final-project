@@ -1,41 +1,84 @@
-require("dotenv").config()
+// require("dotenv").config()
 
-const express=require('express')
-const cors=require('cors')
-
-
-const app=express()
-
-const db=require('./config/db')
-
-const authRoutes=require('./routes/authRoutes')
-
-const categoryRoutes=require('./routes/categoryRoutes')
-
-const productRoutes=require('./routes/productRoutes')
-const cartRoutes=require('./routes/cartRoutes')
-const wishlistRoutes=require('./routes/wishlistRoutes')
-const orderRoutes=require('./routes/orderRoutes')
-const paymentRoutes=require('./routes/paymentRoutes')
-
-app.use(cors())
-app.use(express.json())
+// const express=require('express')
+// const cors=require('cors')
 
 
-app.use('/auth',authRoutes)
+// const app=express()
 
-app.use('/category',categoryRoutes)
-app.use('/product',productRoutes)
-app.use('/cart',cartRoutes)
-app.use('/wishlist',wishlistRoutes)
-app.use('/order',orderRoutes)
-app.use('/payment',paymentRoutes)
+// const db=require('./config/db')
+
+// const authRoutes=require('./routes/authRoutes')
+
+// const categoryRoutes=require('./routes/categoryRoutes')
+
+// const productRoutes=require('./routes/productRoutes')
+// const cartRoutes=require('./routes/cartRoutes')
+// const wishlistRoutes=require('./routes/wishlistRoutes')
+// const orderRoutes=require('./routes/orderRoutes')
+// const paymentRoutes=require('./routes/paymentRoutes')
+
+// app.use(cors())
+// app.use(express.json())
 
 
-const PORT=process.env.PORT || 8095
+// app.use('/auth',authRoutes)
 
-app.listen(PORT,()=>{
+// app.use('/category',categoryRoutes)
+// app.use('/product',productRoutes)
+// app.use('/cart',cartRoutes)
+// app.use('/wishlist',wishlistRoutes)
+// app.use('/order',orderRoutes)
+// app.use('/payment',paymentRoutes)
 
-    console.log("server is started on port "+PORT)
 
-})
+// const PORT=process.env.PORT || 8095
+
+// app.listen(PORT,()=>{
+
+//     console.log("server is started on port "+PORT)
+
+// })
+
+
+
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+const db = require("./config/db");
+
+const authRoutes = require("./routes/authRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const productRoutes = require("./routes/productRoutes");
+const cartRoutes = require("./routes/cartRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+
+app.use(cors());
+app.use(express.json());
+
+// HOME / ROOT ROUTE
+app.get("/", (req, res) => {
+    res.send("SnepDeal E-Commerce Backend is Running");
+});
+
+// API ROUTES
+app.use("/auth", authRoutes);
+app.use("/category", categoryRoutes);
+app.use("/product", productRoutes);
+app.use("/cart", cartRoutes);
+app.use("/wishlist", wishlistRoutes);
+app.use("/order", orderRoutes);
+app.use("/payment", paymentRoutes);
+
+const PORT = process.env.PORT || 8095;
+
+app.listen(PORT, () => {
+    console.log("server is started on port " + PORT);
+});
