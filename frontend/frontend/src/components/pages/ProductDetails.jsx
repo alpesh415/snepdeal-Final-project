@@ -1,158 +1,99 @@
-
-
-
-import React, { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAppContext } from "../context/AppContext";
-import "./ProductDetails.css";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { API } from "../components/services/api";
 
 const ProductDetails = () => {
   const { id } = useParams();
 
-  const { addToCart, toggleWishlist, isWishlisted, products, productsLoading } =
-    useAppContext();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const product = useMemo(
-    () => products.find((p) => String(p.id) === String(id)),
-    [id, products]
-  );
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  const navigate = useNavigate();
+        const response = await fetch(API.productById(id));
 
-  const [qty, setQty] = useState(1);
+        if (!response.ok) {
+          throw new Error("Product not found");
+        }
 
-  if (productsLoading) {
-    return <div className="text-center p-5">Loading product...</div>;
-  }
+        const data = await response.json();
 
-  if (!product) {
+        const productData = data.product || data.data || data;
+
+        setProduct(productData);
+      } catch (err) {
+        console.error("Product details error:", err);
+        setError("Product details load nahi ho rahe.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProduct();
+    }
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="product-not-found">
-        <h2>Product not found</h2>
-
-        <button onClick={() => navigate("/")}>
-          Back to Home
-        </button>
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <h3>Loading Product...</h3>
       </div>
     );
   }
 
-  const buy = () => {
-    addToCart(product, qty);
-    navigate("/checkout");
-  };
+  if (error || !product) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <h3>{error || "Product not found"}</h3>
+      </div>
+    );
+  }
 
   return (
-    <div className="product-details-page">
-      <div className="product-breadcrumb">
-        <Link to="/">Home</Link> / Products / {product.title}
+    <div className="product-details">
+      <div className="product-image">
+        <img
+          src={
+            product.image ||
+            product.imageUrl ||
+            product.images?.[0] ||
+            "https://via.placeholder.com/400"
+          }
+          alt={product.name}
+          style={{ maxWidth: "400px", width: "100%" }}
+        />
       </div>
 
-      <div className="product-details-container">
-        <div className="product-details-image-section">
-          <div className="product-details-image-box">
-            <img src={product.image} alt={product.title} />
-          </div>
+      <div className="product-info">
+        <h1>{product.name}</h1>
 
-          <div className="product-action-buttons">
-            <button
-              className="details-cart-btn"
-              onClick={() => addToCart(product, qty)}
-            >
-              🛒 Add to Cart
-            </button>
-
-            <button
-              className="details-buy-btn"
-              onClick={buy}
-            >
-              ⚡ Buy Now
-            </button>
-          </div>
-        </div>
-
-        <div className="product-details-info">
-          <div className="d-flex justify-content-between gap-3">
-            <h1>{product.title}</h1>
-
-            <button
-              className="btn btn-light"
-              onClick={() => toggleWishlist(product)}
-            >
-              <i
-                className={`bi ${
-                  isWishlisted(product.id)
-                    ? "bi-heart-fill text-danger"
-                    : "bi-heart"
-                }`}
-              />{" "}
-              Wishlist
-            </button>
-          </div>
-
-          <div className="details-rating">
-            <span className="details-rating-box">
-              ★ {product.rating}
-            </span>
-
-            <span>
-              {product.reviews} Ratings & Reviews
-            </span>
-          </div>
-
-          <hr />
-
-          <div className="details-price-section">
-            <span className="details-price">
-              ₹{product.price}
-            </span>
-
-            <span className="details-old-price">
-              ₹{product.oldPrice}
-            </span>
-
-            <span className="details-discount">
-              {product.discount}% OFF
-            </span>
-          </div>
-
-          <p className="tax-info">
-            Inclusive of all taxes
+        {product.category && (
+          <p>
+            <strong>Category:</strong>{" "}
+            {typeof product.category === "object"
+              ? product.category.name
+              : product.category}
           </p>
+        )}
 
-          <div className="quantity-box">
-            <strong>Quantity:</strong>
+        <h2>₹{product.price}</h2>
 
-            <button
-              onClick={() => setQty(Math.max(1, qty - 1))}
-            >
-              −
-            </button>
+        {product.description && <p>{product.description}</p>}
 
-            <span>{qty}</span>
+        {product.stock !== undefined && (
+          <p>
+            <strong>Stock:</strong> {product.stock}
+          </p>
+        )}
 
-            <button onClick={() => setQty(qty + 1)}>
-              +
-            </button>
-          </div>
-
-          <div className="delivery-box">
-            <strong>🚚 Free delivery</strong>
-            <span>
-              7 days easy returns • Secure payment
-            </span>
-          </div>
-
-          <h4>Product Details</h4>
-
-          <p>{product.description}</p>
-
-          <ul>
-            <li>Brand: {product.brand}</li>
-            <li>Category: {product.category}</li>
-            <li>In stock and ready to ship</li>
-          </ul>
-        </div>
+        <button>Add to Cart</button>
+        <button>Add to Wishlist</button>
       </div>
     </div>
   );

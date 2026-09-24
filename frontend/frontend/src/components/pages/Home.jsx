@@ -1,59 +1,73 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import CategoryMenu from "../CategoryMenu/CategoryMenu";
-import Banner from "../Banner/Banner";
-import ProductCard from "../ProductCard/ProductCard";
-import { useAppContext } from "../context/AppContext";
+import React, { useEffect, useState } from "react";
+import { API } from "../components/services/api";
+import ProductCard from "../components/ProductCard";
 
 const Home = () => {
-  const { products, productsLoading } = useAppContext();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(API.products);
+
+        if (!response.ok) {
+          throw new Error("Products API failed");
+        }
+
+        const data = await response.json();
+
+        // Backend response ko handle karna
+        const productList = Array.isArray(data)
+          ? data
+          : data.products || data.data || [];
+
+        setProducts(productList);
+      } catch (err) {
+        console.error("Product fetch error:", err);
+        setError("Products load nahi ho rahe.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <h3>Loading Products...</h3>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px" }}>
+        <h3>{error}</h3>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="container-fluid px-4 px-lg-5 py-4">
-        <div className="row g-4">
-          <div className="col-lg-3 col-md-4">
-            <CategoryMenu />
-          </div>
-
-          <div className="col-lg-9 col-md-8">
-            <Banner />
-          </div>
-        </div>
-
-        <section className="mt-5">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h2 className="product-section-title">All Products</h2>
-
-            <Link
-              className="view-all-btn text-decoration-none"
-              to="/category/all"
-            >
-              View All
-            </Link>
-          </div>
-
-          {productsLoading ? (
-            <div className="text-center p-5">Loading products...</div>
-          ) : products.length ? (
-            <div className="row g-3">
-              {products.map((p) => (
-                <div
-                  className="col-xl-2 col-lg-3 col-md-4 col-sm-6"
-                  key={p.id}
-                >
-                  <ProductCard product={p} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center p-5">
-              No products found. Add some from the Admin Dashboard.
-            </div>
-          )}
-        </section>
+    <div>
+      <div className="product-container">
+        {products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard key={product._id || product.id} product={product} />
+          ))
+        ) : (
+          <h3 style={{ textAlign: "center", width: "100%" }}>
+            No Products Found
+          </h3>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
